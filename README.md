@@ -1,8 +1,10 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-
 ## Available Scripts
 
 In the project directory, you can run:
+
+### `npm install`
+
+Run this for the first time, after cloning this repository. This will create the nodejs folder with the necessary files.
 
 ### `npm start`
 
