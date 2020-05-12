@@ -21,20 +21,34 @@ class Board extends React.Component {
         super(props);
         this.state = {
             squares: Array(9).fill(null),
-        };
+            freeSquares: 9,
+        };        
     }
 
     handleClick(i){
-        const squares = this.state.squares.slice();
+      if (this.state.squares[i] != null)
+        return;
+
+      const squares = this.state.squares.slice();
+
+      if (this.state.freeSquares > 0)
+      {        
         squares[i] = 'X';
+        this.setState({squares: squares});
+        this.state.freeSquares = this.state.freeSquares - 1;
+      }
+
+      if (this.state.freeSquares > 0){        
         var next = 0;
         do{
-            next = Math.round(Math.random() * 9);
+            next = Math.round(Math.random() * 8);
         }while(squares[next] != null);
         squares[next] = 'O';
         this.setState({squares: squares});
-        console.log(i);
-        console.log(next);
+        this.state.freeSquares = this.state.freeSquares - 1;
+      }      
+      console.log(i);
+      console.log(next);
     }
 
     renderSquare(i) {
@@ -47,11 +61,11 @@ class Board extends React.Component {
     }
 
   render() {
-    const status = 'Next player: X';
+    const status = 'Beta player: Herr Ludwigs';
 
     return (
       <div>
-        <div className="status">{status}</div>
+        <div className="status"><b>{status}</b></div>
         <div className="board-row">
           {this.renderSquare(0)}
           {this.renderSquare(1)}
