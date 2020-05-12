@@ -10,7 +10,6 @@ function Square(props) {
   );
 }
 
-
 class Board extends React.Component {
     constructor(props) {
         super(props);
@@ -18,6 +17,13 @@ class Board extends React.Component {
             squares: Array(9).fill(null),
             freeSquares: 9,
         };        
+    }
+
+    play(player, i, squares){
+      squares[i] = player;
+      const frSt = this.state.freeSquares - 1;
+      this.setState({squares: squares});
+      this.state.freeSquares = frSt;
     }
 
     handleClick(i){
@@ -30,9 +36,7 @@ class Board extends React.Component {
 
       if (this.state.freeSquares > 0)
       {        
-        squares[i] = 'X';
-        this.setState({squares: squares});
-        this.state.freeSquares = this.state.freeSquares - 1;        
+        this.play('X', i, squares);
       }
 
       if (this.state.freeSquares > 0){   
@@ -43,12 +47,9 @@ class Board extends React.Component {
         do{
             next = Math.round(Math.random() * 8);
         }while(squares[next] != null);
-        squares[next] = 'O';
-        this.setState({squares: squares});
-        this.state.freeSquares = this.state.freeSquares - 1;
-      }      
-      console.log(i);
-      console.log(next);
+        
+        this.play('O', next, squares);
+      }
     }
 
     renderSquare(i) {
