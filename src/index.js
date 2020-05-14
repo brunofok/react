@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
+import Peer from 'peerjs'
+
 
 function Square(props) {
   return (
@@ -61,7 +63,7 @@ class Board extends React.Component {
         );
     }
 
-  render() {
+  render() {    
     var status = 'Beta player: X against the super powerfull machine O';
     const winner = calculateWinner(this.state.squares)
 
@@ -69,7 +71,7 @@ class Board extends React.Component {
       status = 'Winner is: ' + winner;
 
     return (
-      <div>
+      <div>        
         <div className="status"><b>{status}</b></div>
         <div className="board-row">
           {this.renderSquare(0)}
@@ -92,15 +94,45 @@ class Board extends React.Component {
 }
 
 class Game extends React.Component {
+  constructor(props) {
+    super(props);
+    this.peer = new Peer();
+    this.state = {
+      newId: null,
+      opponentsId: null,
+    };
+  }
+
+/*   join()
+    {
+      const othersId = document.getElementById("opponentsId").value;
+      this.peer.connect(othersId);
+      console.log(othersId);
+    } */
+  
   render() {
-    return (
+    /**
+     * We need that pointing to this becase in the anonymous function
+     * this is different of what we want.
+     */
+    const that = this;
+    that.peer.on("open", function(idr){
+      that.setState({newId: idr});
+    });    
+    
+    return (    
       <div className="game">
+        
+        <p></p>
         <div className="game-board">
           <Board />
         </div>
         <div className="game-info">
-          <div>{/* status */}</div>
+        <div>Your unique ID is: {this.state.newId}</div>
           <ol>{/* TODO */}</ol>
+        <input id="opponentsId"/>
+        <button onClick={() => this.join}>Connect</button>
+        
         </div>
       </div>
     );

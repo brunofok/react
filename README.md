@@ -4,7 +4,7 @@ In the project directory, you can run:
 
 ### `npm install`
 
-Run this for the first time, after cloning this repository. This will create the nodejs folder with the necessary files.
+Run this for the first time, after cloning this repository. This will create the nodejs folder with the necessary modules.
 
 ### `npm start`
 
