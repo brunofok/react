@@ -15,9 +15,14 @@ function Square(props) {
 class Board extends React.Component {
     constructor(props) {
         super(props);
+        this.peer = new Peer();
         this.state = {
             squares: Array(9).fill(null),
             freeSquares: 9,
+            newId: null,
+            opponentsId: null,
+            conn: null,
+            status: String("Unconnected"),
         };        
     }
 
@@ -32,6 +37,8 @@ class Board extends React.Component {
       if (this.state.squares[i] != null)
         return;
 
+      this.state.conn.send(i);
+
       const squares = this.state.squares.slice();
       if (calculateWinner(squares))
           return;
@@ -45,16 +52,37 @@ class Board extends React.Component {
         if (calculateWinner(squares))
           return;     
 
+        /*
         var next = 0;
         do{
             next = Math.round(Math.random() * 8);
         }while(squares[next] != null);
         
         this.play('O', next, squares);
+        */
       }
     }
 
-    renderSquare(i) {
+    connect()
+    {
+      const othersId = document.getElementById("opponentsId").value;
+      const attemptToConnect = this.peer.connect(othersId);
+      const that = this;
+      attemptToConnect.on('open', function() {
+        that.setState({state: "Connected"});
+        console.log("connected");
+      });
+      this.peer.on('connection', function(conn){
+        conn.on('data', function(data){
+          console.log('received: ' + data);
+          that.handleClick(data);
+        });
+      });
+      this.setState({conn: attemptToConnect});
+    } 
+
+    renderSquare(i) {   
+
         return (
             <Square 
             value={this.state.squares[i]}
@@ -63,9 +91,26 @@ class Board extends React.Component {
         );
     }
 
+    renderConnect() {
+      return (
+          <button 
+          onClick={() => this.connect()}
+          />
+      );
+  }    
+
   render() {    
     var status = 'Beta player: X against the super powerfull machine O';
     const winner = calculateWinner(this.state.squares)
+
+    /**
+     * We need that pointing to this becase in the anonymous function
+     * this is different of what we want.
+     */
+    const that = this;
+    that.peer.on("open", function(idr){
+      that.setState({newId: idr});
+    });      
 
     if (winner != null)
       status = 'Winner is: ' + winner;
@@ -88,6 +133,11 @@ class Board extends React.Component {
           {this.renderSquare(7)}
           {this.renderSquare(8)}
         </div>
+        <div className="connect-button">
+          {this.renderConnect()}
+        </div>
+        <div>Your unique ID is: {this.state.newId}</div>
+        <div>Connection's status: {this.state.status}</div>
       </div>
     );
   }
@@ -95,31 +145,10 @@ class Board extends React.Component {
 
 class Game extends React.Component {
   constructor(props) {
-    super(props);
-    this.peer = new Peer();
-    this.state = {
-      newId: null,
-      opponentsId: null,
-    };
+    super(props);    
   }
 
-/*   join()
-    {
-      const othersId = document.getElementById("opponentsId").value;
-      this.peer.connect(othersId);
-      console.log(othersId);
-    } */
-  
-  render() {
-    /**
-     * We need that pointing to this becase in the anonymous function
-     * this is different of what we want.
-     */
-    const that = this;
-    that.peer.on("open", function(idr){
-      that.setState({newId: idr});
-    });    
-    
+  render() {    
     return (    
       <div className="game">
         
@@ -127,12 +156,9 @@ class Game extends React.Component {
         <div className="game-board">
           <Board />
         </div>
-        <div className="game-info">
-        <div>Your unique ID is: {this.state.newId}</div>
+        <div className="game-info">        
           <ol>{/* TODO */}</ol>
-        <input id="opponentsId"/>
-        <button onClick={() => this.join}>Connect</button>
-        
+        <input id="opponentsId"/>        
         </div>
       </div>
     );
