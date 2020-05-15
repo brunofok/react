@@ -29,8 +29,8 @@ class Board extends React.Component {
     play(player, i, squares){
       squares[i] = player;
       const frSt = this.state.freeSquares - 1;
-      this.setState({squares: squares});
-      this.state.freeSquares = frSt;
+      this.setState({squares: squares, freeSquares: frSt});
+      this.setState({freeSquares: frSt});
     }
 
     handleClick(i){
@@ -54,15 +54,6 @@ class Board extends React.Component {
       if (this.state.freeSquares > 0){   
         if (calculateWinner(squares))
           return;     
-
-        /*
-        var next = 0;
-        do{
-            next = Math.round(Math.random() * 8);
-        }while(squares[next] != null);
-        
-        this.play('O', next, squares);
-        */
       }
     }
 
@@ -123,7 +114,7 @@ class Board extends React.Component {
     });    
     
     that.peer.on("connection", function(c){
-      console.log("someone tried to connect remotely.");
+      console.log("someone tried to connect remotely: " + c.peer);
     });
 
     if (winner != null)
