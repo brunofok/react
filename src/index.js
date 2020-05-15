@@ -37,6 +37,9 @@ class Board extends React.Component {
       if (this.state.squares[i] != null)
         return;
 
+      if (!this.state.conn || !this.state.conn.open)
+        this.connect();
+
       this.state.conn.send(i);
 
       const squares = this.state.squares.slice();
@@ -65,16 +68,23 @@ class Board extends React.Component {
 
     connect()
     {
+      if (this.conn){
+        this.conn.close();
+      }
       const othersId = document.getElementById("opponentsId").value;
-      const attemptToConnect = this.peer.connect(othersId);
+      if (othersId === ""){
+        alert("You need to enter the opponent's id.");
+        return;
+      }
+      const attemptToConnect = this.peer.connect(othersId, {reliable: true});
       const that = this;
       attemptToConnect.on('open', function() {
-        that.setState({state: "Connected"});
+        that.setState({status: "Waiting for the opponent's connection..."});
         console.log("connected");
       });
       this.peer.on('connection', function(conn){
+        that.setState({status: "Connected"});
         conn.on('data', function(data){
-          console.log('received: ' + data);
           that.handleClick(data);
         });
       });
@@ -110,7 +120,11 @@ class Board extends React.Component {
     const that = this;
     that.peer.on("open", function(idr){
       that.setState({newId: idr});
-    });      
+    });    
+    
+    that.peer.on("connection", function(c){
+      console.log("someone tried to connect remotely.");
+    });
 
     if (winner != null)
       status = 'Winner is: ' + winner;
