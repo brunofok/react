@@ -96,9 +96,11 @@ class Board extends React.Component {
 
     renderConnect() {
       return (
-          <button 
-          onClick={() => this.connect()}
-          />
+          <div>
+          <p></p>
+          <button className="connect"
+          onClick={() => this.connect()}> Connect</button>
+          </div>
       );
   }    
 
