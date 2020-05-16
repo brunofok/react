@@ -16,6 +16,7 @@ class Board extends React.Component {
     constructor(props) {
         super(props);
         this.peer = new Peer();
+        this.whoAmI = null;
         this.state = {
             squares: Array(9).fill(null),
             freeSquares: 9,
@@ -33,12 +34,12 @@ class Board extends React.Component {
       this.setState({freeSquares: frSt});
     }
 
-    handleSharedClick(i){
-      this.handleClick(i);
+    handleSharedClick(player, i){
+      this.handleClick(player, i);
       this.state.conn.send(i);
     }
 
-    handleClick(i){
+    handleClick(player, i){
       if (this.state.squares[i] != null)
         return;
 
@@ -51,7 +52,7 @@ class Board extends React.Component {
 
       if (this.state.freeSquares > 0)
       {        
-        this.play('X', i, squares);
+        this.play(player, i, squares);
       }
 
       if (this.state.freeSquares > 0){   
@@ -73,9 +74,11 @@ class Board extends React.Component {
       const attemptToConnect = this.peer.connect(othersId, {reliable: true});
       const that = this;
       attemptToConnect.on('open', function() {
+        if (that.whoAmI == null)
+          that.whoAmI = 'X';
         that.setState({status: "Connected"});        
         this.on('data', function(data){
-          that.handleClick(data);
+          that.handleClick('O', data);
         });
       });
       this.setState({conn: attemptToConnect});
@@ -86,7 +89,7 @@ class Board extends React.Component {
         return (
             <Square 
             value={this.state.squares[i]}
-            onClick={() => this.handleSharedClick(i)}
+            onClick={() => this.handleSharedClick(this.whoAmI, i)}
             />
         );
     }
@@ -100,7 +103,10 @@ class Board extends React.Component {
   }    
 
   render() {    
-    var status = 'Beta player: X against the super powerfull machine O';
+    var status = '';
+    if (this.whoAmI)
+      status = 'Match started. You are the player ' + this.whoAmI;
+    
     const winner = calculateWinner(this.state.squares)
 
     /**
@@ -113,10 +119,12 @@ class Board extends React.Component {
     });    
     
     that.peer.on("connection", function(c){
+      if (that.whoAmI == null)
+        that.whoAmI = 'O';
       that.setState({status: "Connected"});
       console.log("someone tried to connect remotely: " + c.peer);
       c.on('data', function(data){
-        that.handleClick(data);
+        that.handleClick('X', data);
       });
       that.setState({conn: c});
     });
