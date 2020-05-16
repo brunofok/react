@@ -33,14 +33,17 @@ class Board extends React.Component {
       this.setState({freeSquares: frSt});
     }
 
+    handleSharedClick(i){
+      this.handleClick(i);
+      this.state.conn.send(i);
+    }
+
     handleClick(i){
       if (this.state.squares[i] != null)
         return;
 
-      if (!this.state.conn || !this.state.conn.open)
-        this.connect();
-
-      this.state.conn.send(i);
+      //if (!this.state.conn || !this.state.conn.open)
+        //this.connect();
 
       const squares = this.state.squares.slice();
       if (calculateWinner(squares))
@@ -71,13 +74,13 @@ class Board extends React.Component {
       const that = this;
       attemptToConnect.on('open', function() {
         that.setState({status: "Waiting for the opponent's connection..."});
-        console.log("connected");
       });
       this.peer.on('connection', function(conn){
-        that.setState({status: "Connected"});
+        that.setState({status: "Connected"});        
         conn.on('data', function(data){
           that.handleClick(data);
         });
+        that.setState({conn: conn});
       });
       this.setState({conn: attemptToConnect});
     } 
@@ -87,7 +90,7 @@ class Board extends React.Component {
         return (
             <Square 
             value={this.state.squares[i]}
-            onClick={() => this.handleClick(i)}
+            onClick={() => this.handleSharedClick(i)}
             />
         );
     }
@@ -115,6 +118,10 @@ class Board extends React.Component {
     
     that.peer.on("connection", function(c){
       console.log("someone tried to connect remotely: " + c.peer);
+      c.on('data', function(data){
+        that.handleClick(data);
+      });
+      that.setState({conn: c});
     });
 
     if (winner != null)
