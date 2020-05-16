@@ -24,6 +24,7 @@ class Board extends React.Component {
             opponentsId: null,
             conn: null,
             status: String("Unconnected"),
+            next: null
         };        
     }
 
@@ -34,8 +35,17 @@ class Board extends React.Component {
       this.setState({freeSquares: frSt});
     }
 
+    invertPlayer(){
+      return this.next == 'X' ? 'O': 'X';
+    }
+
     handleSharedClick(player, i){
+      if (!player)
+        return;
+      if(this.next && this.next != player)
+        return;
       this.handleClick(player, i);
+      this.next = this.invertPlayer();
       this.state.conn.send(i);
     }
 
@@ -63,8 +73,9 @@ class Board extends React.Component {
 
     connect()
     {
-      if (this.conn){
-        this.conn.close();
+      if (this.conn && this.conn.open){
+        alert('You are already connected.');
+        return;
       }
       const othersId = document.getElementById("opponentsId").value;
       if (othersId === ""){
@@ -76,9 +87,12 @@ class Board extends React.Component {
       attemptToConnect.on('open', function() {
         if (that.whoAmI == null)
           that.whoAmI = 'X';
+        if (that.next == null)
+          that.next = that.whoAmI;
         that.setState({status: "Connected"});        
         this.on('data', function(data){
           that.handleClick('O', data);
+          that.next = 'X';
         });
       });
       this.setState({conn: attemptToConnect});
@@ -123,10 +137,13 @@ class Board extends React.Component {
     that.peer.on("connection", function(c){
       if (that.whoAmI == null)
         that.whoAmI = 'O';
+      if (that.next == null)
+        that.next = 'X';
       that.setState({status: "Connected"});
       console.log("someone tried to connect remotely: " + c.peer);
       c.on('data', function(data){
         that.handleClick('X', data);
+        that.next = 'O';
       });
       that.setState({conn: c});
     });
