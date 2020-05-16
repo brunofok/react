@@ -73,14 +73,10 @@ class Board extends React.Component {
       const attemptToConnect = this.peer.connect(othersId, {reliable: true});
       const that = this;
       attemptToConnect.on('open', function() {
-        that.setState({status: "Waiting for the opponent's connection..."});
-      });
-      this.peer.on('connection', function(conn){
         that.setState({status: "Connected"});        
-        conn.on('data', function(data){
+        this.on('data', function(data){
           that.handleClick(data);
         });
-        that.setState({conn: conn});
       });
       this.setState({conn: attemptToConnect});
     } 
@@ -117,6 +113,7 @@ class Board extends React.Component {
     });    
     
     that.peer.on("connection", function(c){
+      that.setState({status: "Connected"});
       console.log("someone tried to connect remotely: " + c.peer);
       c.on('data', function(data){
         that.handleClick(data);
