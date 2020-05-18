@@ -35,52 +35,59 @@ class Board extends React.Component {
       this.setState({freeSquares: frSt});
     }
 
-    invertNext(){
-      this.next = this.next === 'X' ? 'O': 'X';
+    nextIsOther(){
+      this.next = this.whoAmI === 'X' ? 'O': 'X';
     }
 
+    nextIsMe(){
+      this.next = this.whoAmI;
+    }    
+
     handleSharedClick(i){
+      debugger;
       if (!this.whoAmI)
         return;
-      if(this.next && this.next !== this.whoAmI)
+      if (!this.next)
         return;
-      this.handleGenericClick(this.whoAmI, i);
-      this.invertNext();
-      this.sendClick(i);
+      if(this.next !== this.whoAmI)
+        return;
+      if (this.handleGenericClick(this.whoAmI, i)){
+        this.nextIsOther();
+        this.sendClick(i);
+      }
     }
 
     sendClick(i){
       if (!this.state.conn || !this.state.conn.open)
         return;
 
-      if(!i)
+      if(i === null)
         return;
-      
+      console.log('sending a click');
       this.state.conn.send(i);
     }
 
     handleReceivedClick(player, i){
-      if(!player || !i)
-        return;
-
-      this.handleGenericClick(player, i);
-      this.next = player === 'O' ? 'X' : 'O';
+      console.log('handle received click: ' + player);
+      if (this.handleGenericClick(player, i))
+        this.nextIsMe();
     }
 
     handleGenericClick(player, i){
+      console.log('next: ' + this.next);
 
       if(!player)
-        return;
+        return false;
 
-      if(!i || Number(i) < 0 || Number(i) > 9 )
-        return;
+      if(i === null || Number(i) < 0 || Number(i) > 9 )
+        return false;
 
       if (this.state.squares[i] != null)
-        return;      
+        return false;
 
       const squares = this.state.squares.slice();
       if (calculateWinner(squares))
-          return;
+          return false;
 
       if (this.state.freeSquares > 0)
       {        
@@ -89,8 +96,10 @@ class Board extends React.Component {
 
       if (this.state.freeSquares > 0){   
         if (calculateWinner(squares))
-          return;     
+          return false;     
       }
+
+      return true;
     }
 
     connect()
@@ -108,7 +117,7 @@ class Board extends React.Component {
         alert("You can't connect to yourself.");
         return;
       }
-      const attemptToConnect = this.peer.connect(othersId, {reliable: true});
+      const attemptToConnect = this.peer.connect(othersId, {reliable: false});
       const that = this;
       attemptToConnect.on('open', function() {
         if (that.whoAmI == null)
@@ -171,6 +180,7 @@ class Board extends React.Component {
       that.setState({status: "Connected"});
       console.log("someone tried to connect remotely: " + c.peer);
       c.on('data', function(data){
+        console.log('A message was received');
         that.handleReceivedClick('X', data);
       });
       that.setState({conn: c});
